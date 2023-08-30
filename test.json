@@ -1,0 +1,19 @@
+{
+    "employees": [
+      {
+        "name": "John Doe",
+        "programs": [
+          { "name": "Project Management" },
+          { "name": "Communication Skills" }
+        ]
+      },
+      {
+        "name": "Jane Smith",
+        "programs": [
+          { "name": "Programming Fundamentals" },
+          { "name": "Problem Solving" }
+        ]
+      }
+    ]
+  }
+  

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 20px;
+  }
+  select, textarea {
+    width: 100%;
+    padding: 5px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+  }
+  button {
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
+  }
+</style>
+<title>Employee Evaluation</title>
+</head>
+<body>
+  <h1>Employee Evaluation</h1>
+  <p>Select JSON file:</p>
+  <input type="file" id="jsonFileInput">
+  <button id="loadButton">Load Data</button>
+
+  <div id="evaluationForm" style="display: none;">
+    <h2>Evaluation Form</h2>
+    <form id="questionsForm">
+      <!-- Questions will be added dynamically using JavaScript -->
+    </form>
+    <button id="submitEvaluation">Submit Evaluation</button>
+  </div>
+
+  <script>
+    let companyData;
+
+    const jsonFileInput = document.getElementById('jsonFileInput');
+    const loadButton = document.getElementById('loadButton');
+    const evaluationForm = document.getElementById('evaluationForm');
+    const questionsForm = document.getElementById('questionsForm');
+    const submitEvaluation = document.getElementById('submitEvaluation');
+
+    loadButton.addEventListener('click', () => {
+      const file = jsonFileInput.files[0];
+      const reader = new FileReader();
+      
+      reader.onload = (event) => {
+        companyData = JSON.parse(event.target.result);
+        showEvaluationForm();
+      };
+      
+      reader.readAsText(file);
+    });
+
+    function showEvaluationForm() {
+      evaluationForm.style.display = 'block';
+
+      companyData.employees.forEach((employee) => {
+        const fieldset = document.createElement('fieldset');
+        fieldset.innerHTML = `<legend>${employee.name}</legend>`;
+
+        employee.programs.forEach((program, index) => {
+          const question = `
+            <label>${program.name}</label><br>
+            <select name="program${index}">
+              <option value="0">less than 20%</option>
+              <option value="1">between 20% and 40%</option>
+              <option value="2">between 40% and 60%</option>
+              <option value="3">between 60% and 80%</option>
+              <option value="4">between 80% and 100%</option>
+            </select><br>
+            <textarea name="comments${index}" placeholder="Comments"></textarea><br>
+          `;
+          fieldset.innerHTML += question;
+        });
+
+        questionsForm.appendChild(fieldset);
+      });
+    }
+
+    submitEvaluation.addEventListener('click', () => {
+      const formData = new FormData(questionsForm);
+      let evaluationResults = [];
+
+      for (const [key, value] of formData.entries()) {
+        evaluationResults.push({ [key]: value });
+      }
+
+      console.log(evaluationResults);
+      // You can send this evaluation data to a server or store it locally as needed
+    });
+  </script>
+</body>
+</html>
