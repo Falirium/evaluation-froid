@@ -1,19 +1,24 @@
 {
+    "managers": [
+      { "id": "manager1", "password": "password1" }
+    ],
     "employees": [
       {
         "name": "John Doe",
+        "manager": "manager1",
         "programs": [
-          { "name": "Project Management" },
-          { "name": "Communication Skills" }
+          { "question": "How well did John implement Project Management concepts?" },
+          { "question": "Rate John's level of Communication Skills implementation." }
         ]
       },
       {
         "name": "Jane Smith",
+        "manager": "manager1",
         "programs": [
-          { "name": "Programming Fundamentals" },
-          { "name": "Problem Solving" }
+          { "question": "To what extent did Jane grasp Programming Fundamentals?" },
+          { "question": "How effectively did Jane apply Problem Solving techniques?" }
         ]
       }
     ]
-  }
+}
   

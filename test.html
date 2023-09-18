@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 20px;
+  }
+  /* Your CSS styles here */
+</style>
+<title>Employee Evaluation</title>
+</head>
+<body>
+  <h1>Employee Evaluation</h1>
+
+  <form id="authForm" style="display: none;">
+    <label for="managerId">Manager ID:</label>
+    <input type="text" id="managerId" name="managerId"><br>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password"><br>
+    <button type="submit">Authenticate</button>
+  </form>
+
+  <p>Select JSON file:</p>
+  <input type="file" id="jsonFileInput">
+  <button id="loadButton">Load Data</button>
+
+  <div id="evaluationForms" style="display: none;">
+    <h2>Evaluation Forms</h2>
+    <div id="formsContainer">
+      <!-- Evaluation forms will be added dynamically using JavaScript -->
+    </div>
+    <div id="navigationButtons">
+      <button id="prevForm" disabled>Previous</button>
+      <button id="nextForm">Next</button>
+    </div>
+  </div>
+
+  <script>
+    let companyData;
+    let currentManager;
+    let currentFormIndex = 0;
+
+    const jsonFileInput = document.getElementById('jsonFileInput');
+    const loadButton = document.getElementById('loadButton');
+    const authForm = document.getElementById('authForm');
+    const evaluationForms = document.getElementById('evaluationForms');
+    const formsContainer = document.getElementById('formsContainer');
+    const prevFormButton = document.getElementById('prevForm');
+    const nextFormButton = document.getElementById('nextForm');
+
+    loadButton.addEventListener('click', () => {
+      const file = jsonFileInput.files[0];
+      const reader = new FileReader();
+      
+      reader.onload = (event) => {
+        companyData = JSON.parse(event.target.result);
+        showAuthForm();
+      };
+      
+      reader.readAsText(file);
+    });
+
+    authForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const managerId = event.target.elements.managerId.value;
+      const password = event.target.elements.password.value;
+
+      currentManager = companyData.managers.find(manager => manager.id === managerId && manager.password === password);
+
+      if (currentManager) {
+        showEvaluationForms();
+      } else {
+        alert('Invalid credentials. Please try again.');
+      }
+    });
+
+    function showAuthForm() {
+      authForm.style.display = 'block';
+    }
+
+    function showEvaluationForms() {
+      authForm.style.display = 'none';
+      evaluationForms.style.display = 'block';
+
+      companyData.employees.forEach((employee) => {
+        if (employee.manager === currentManager.id) {
+          const form = createForm(employee);
+          formsContainer.appendChild(form);
+        }
+      });
+
+      const forms = formsContainer.querySelectorAll('.evaluation-form');
+      forms[currentFormIndex].style.display = 'block';
+      updateNavigationButtons();
+
+      prevFormButton.addEventListener('click', () => {
+        forms[currentFormIndex].style.display = 'none';
+        currentFormIndex--;
+        forms[currentFormIndex].style.display = 'block';
+        updateNavigationButtons();
+      });
+
+      nextFormButton.addEventListener('click', () => {
+        forms[currentFormIndex].style.display = 'none';
+        currentFormIndex++;
+        forms[currentFormIndex].style.display = 'block';
+        updateNavigationButtons();
+      });
+
+      function updateNavigationButtons() {
+        prevFormButton.disabled = currentFormIndex === 0;
+        nextFormButton.disabled = currentFormIndex === forms.length - 1;
+      }
+    }
+
+    function createForm(employee) {
+      const form = document.createElement('form');
+      form.className = 'evaluation-form';
+
+      const heading = document.createElement('h3');
+      heading.textContent = `Evaluation for ${employee.name}`;
+      form.appendChild(heading);
+
+      employee.programs.forEach((program, index) => {
+        const question = `
+          <label>${program.question}</label><br>
+          <select name="program${index}">
+            <option value="0">less than 20%</option>
+            <option value="1">between 20% and 40%</option>
+            <option value="2">between 40% and 60%</option>
+            <option value="3">between 60% and 80%</option>
+            <option value="4">between 80% and 100%</option>
+          </select><br>
+          <textarea name="comments${index}" placeholder="Comments"></textarea><br>
+        `;
+        form.innerHTML += question;
+      });
+      form.style.display = 'none';
+      return form;
+    }
+  </script>
+</body>
+</html>
