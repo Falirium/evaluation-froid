@@ -67,6 +67,10 @@
             text-align: left;
             margin-bottom: 20px;
         }
+
+        #navButtons {
+            margin-top: 20px;
+        }
     </style>
     <title>Employee Evaluation</title>
 </head>
@@ -95,11 +99,12 @@
         <div id="formsContainer">
             <!-- Evaluation forms will be added dynamically using JavaScript -->
         </div>
-        <div id="navigationButtons">
+        <div id="navButtons">
             <button id="prevForm" disabled>Previous</button>
             <button id="nextForm">Next</button>
         </div>
     </div>
+    <button id="saveJsonButton" style="display: none;">Save Evaluations as JSON</button>
 
     <script>
         let companyData;
@@ -113,6 +118,7 @@
         const formsContainer = document.getElementById('formsContainer');
         const prevFormButton = document.getElementById('prevForm');
         const nextFormButton = document.getElementById('nextForm');
+        const saveJsonButton = document.getElementById('saveJsonButton');
 
         loadButton.addEventListener('click', () => {
             const file = jsonFileInput.files[0];
@@ -158,21 +164,29 @@
 
             const forms = formsContainer.querySelectorAll('.evaluation-form');
             forms[currentFormIndex].style.display = 'block';
-            updateNavigationButtons();
+            updateNavigationButtons(forms);
 
             prevFormButton.addEventListener('click', () => {
                 forms[currentFormIndex].style.display = 'none';
                 currentFormIndex--;
                 forms[currentFormIndex].style.display = 'block';
-                updateNavigationButtons();
+                updateNavigationButtons(forms);
             });
 
             nextFormButton.addEventListener('click', () => {
                 if (validateCurrentForm()) {
                     forms[currentFormIndex].style.display = 'none';
                     currentFormIndex++;
-                    forms[currentFormIndex].style.display = 'block';
-                    updateNavigationButtons();
+                    if (currentFormIndex < forms.length) {
+                        forms[currentFormIndex].style.display = 'block';
+                        updateNavigationButtons(forms);
+                    } else {
+                        // All evaluations are completed
+                        console.log("HEEERRREE")
+                        saveJsonButton.style.display = 'block';
+                        nextFormButton.style.display = 'none';
+                        prevFormButton.style.display = 'none';
+                    }
                 } else {
                     alert('Please complete the active evaluation before moving to the next one.');
                 }
@@ -188,11 +202,11 @@
                 }
                 return true;
             }
+        }
 
-            function updateNavigationButtons() {
-                prevFormButton.disabled = currentFormIndex === 0;
-                nextFormButton.disabled = currentFormIndex === forms.length - 1;
-            }
+        function updateNavigationButtons(forms) {
+            prevFormButton.disabled = currentFormIndex === 0;
+            nextFormButton.disabled = currentFormIndex === forms.length - 1;
         }
 
         function createForm(employee) {
