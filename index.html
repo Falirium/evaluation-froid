@@ -71,6 +71,9 @@
         #navButtons {
             margin-top: 20px;
         }
+        #saveContainer {
+            margin-top: 20px;
+        }
     </style>
     <title>Employee Evaluation</title>
 </head>
@@ -103,13 +106,17 @@
             <button id="prevForm" disabled>Previous</button>
             <button id="nextForm">Next</button>
         </div>
+        <div id="saveContainer">
+            <button id="saveBtn" disabled>Save JSON</button>
+        </div>
+        <button id="saveJsonButton" style="display: none;" disabled>Save Evaluations as JSON</button>
     </div>
-    <button id="saveJsonButton" style="display: none;">Save Evaluations as JSON</button>
 
     <script>
         let companyData;
         let currentManager;
         let currentFormIndex = 0;
+        let forms; // Define forms variable here
 
         const jsonFileInput = document.getElementById('jsonFileInput');
         const loadButton = document.getElementById('loadButton');
@@ -162,15 +169,21 @@
                 }
             });
 
-            const forms = formsContainer.querySelectorAll('.evaluation-form');
+            forms = formsContainer.querySelectorAll('.evaluation-form'); // Assign forms here
             forms[currentFormIndex].style.display = 'block';
-            updateNavigationButtons(forms);
+            updateNavigationButtons();
+
+            // Add event listeners for select elements in the last evaluation form
+            const lastFormSelects = forms[forms.length - 1].querySelectorAll('select');
+            lastFormSelects.forEach(select => {
+                select.addEventListener('change', handleSelectChange);
+            });
 
             prevFormButton.addEventListener('click', () => {
                 forms[currentFormIndex].style.display = 'none';
                 currentFormIndex--;
                 forms[currentFormIndex].style.display = 'block';
-                updateNavigationButtons(forms);
+                updateNavigationButtons();
             });
 
             nextFormButton.addEventListener('click', () => {
@@ -179,11 +192,11 @@
                     currentFormIndex++;
                     if (currentFormIndex < forms.length) {
                         forms[currentFormIndex].style.display = 'block';
-                        updateNavigationButtons(forms);
+                        updateNavigationButtons();
                     } else {
                         // All evaluations are completed
-                        console.log("HEEERRREE")
                         saveJsonButton.style.display = 'block';
+                        saveJsonButton.removeAttribute('disabled');
                         nextFormButton.style.display = 'none';
                         prevFormButton.style.display = 'none';
                     }
@@ -202,9 +215,11 @@
                 }
                 return true;
             }
+
+           
         }
 
-        function updateNavigationButtons(forms) {
+        function updateNavigationButtons() {
             prevFormButton.disabled = currentFormIndex === 0;
             nextFormButton.disabled = currentFormIndex === forms.length - 1;
         }
@@ -238,6 +253,16 @@
             form.style.display = 'none';
             return form;
         }
+
+        // Function to handle the console.log() message
+        function handleSelectChange(event) {
+            const selectElement = event.target;
+            if (currentFormIndex === forms.length - 1) {
+                console.log(` HEERREE Value changed in the last evaluation form. New value: ${selectElement.value}`);
+            }
+        }
+
+        
     </script>
 </body>
 </html>
