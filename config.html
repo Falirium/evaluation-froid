@@ -17,6 +17,10 @@
     <!-- Étape 1 : Importation des données -->
     <section id="etape1">
         <h2>Étape 1 : Importation des données de la population à évaluer</h2>
+        <label for="nomCampagne">Nom de la campagne d'évaluation:</label>
+        <input type="text" id="nomCampagne" name="nomCampagne" />
+
+        <label for="fichierExcel">Importer le fichier Excel:</label>
         <input type="file" id="fichierExcel" accept=".xlsx, .xls">
     <div id="resultat"></div>
     </section>
@@ -104,13 +108,21 @@
                     donneesPopulation = toNewFormat(donneesPopulation);
 
                     // Afficher les données dans la div résultat
-                    resultatDiv.textContent = JSON.stringify(donneesPopulation, null, 2);
+                    // resultatDiv.textContent = JSON.stringify(donneesPopulation, null, 2);
                 };
 
                 reader.readAsArrayBuffer(file);
     
             // Afficher l'étape 2 une fois les données importées
-            afficherEtape('etape2');
+            // Récupérez le nom de la campagne d'évaluation depuis le champ
+            const nomCampagne = document.getElementById('nomCampagne').value;
+
+            if (nomCampagne === '') {
+                alert('Merci de saisir un nom pour cette campagne');
+            } else {
+                afficherEtape('etape2');
+            }
+            
         }
     
         // Étape 2 : Permettre à l'utilisateur de gérer les questions
@@ -165,6 +177,9 @@
 
             // Stockez toutes les questions dans la variable 'questionsEvaluation'
             questionsEvaluation = Array.from(listeQuestions.querySelectorAll('.questionInput')).map(input => input.value);
+
+            // Récupérez le nom de la campagne d'évaluation depuis le champ
+            const nomCampagne = document.getElementById('nomCampagne').value;
     
             // Créez une liste de gestionnaires à partir des données de la population
             for (const data of donneesPopulation) {
@@ -193,7 +208,7 @@
             }
     
             // Créez l'objet JSON final
-            const jsonData = { managers: managers, employees: employees };
+            const jsonData = { campagne_ID: nomCampagne, managers: managers, employees: employees };
     
             // Affichez le JSON généré dans le textarea
             jsonOutput.value = JSON.stringify(jsonData, null, 2);
