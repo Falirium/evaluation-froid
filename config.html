@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+    <style>
+        /* Styles CSS ici */
+    </style>
+    <title>Configuration de la Campagne d'Évaluation</title>
+</head>
+<body>
+    <h1>Configuration de la Campagne d'Évaluation</h1>
+
+    <!-- Étape 1 : Importation des données -->
+    <section id="etape1">
+        <h2>Étape 1 : Importation des données de la population à évaluer</h2>
+        <input type="file" id="fichierExcel" accept=".xlsx, .xls">
+    <div id="resultat"></div>
+    </section>
+
+    <!-- Étape 2 : Écriture des questions -->
+    <section id="etape2" style="display: none;">
+        <h2>Étape 2 : Écriture des questions de l'évaluation</h2>
+        <ul id="listeQuestions">
+            <!-- Les questions seront ajoutées dynamiquement ici -->
+        </ul>
+        <button id="ajouterQuestion">Ajouter une question</button>
+        <button id="genererJSON">Générer le fichier JSON</button>
+    </section>
+
+    <!-- Étape 3 : Génération du fichier JSON -->
+    <section id="etape3" style="display: none;">
+        <h2>Étape 3 : Génération du fichier JSON</h2>
+        <textarea id="jsonOutput" rows="10" cols="50"></textarea>
+    </section>
+
+    <script>
+        // Variables globales pour stocker les données
+        let donneesPopulation = [];
+        let questionsEvaluation = [];
+    
+        // Étape 1 : Gestion de l'importation des données depuis un fichier Excel
+        const fichierExcelInput = document.getElementById('fichierExcel');
+        const importerDonneesButton = document.getElementById('importerDonnees');
+
+        const resultatDiv = document.getElementById('resultat');
+    
+        // fichierExcelInput.addEventListener('change', (e) => {
+        //     const file = e.target.files[0];
+        //     if (file) {
+        //         parseFichierExcel(file);
+        //     }
+        // });
+
+        fichierExcelInput.addEventListener('change', (e) => {
+            const fichier = e.target.files[0];
+
+            if (fichier) {
+                
+                parseFichierExcel(fichier);
+            }
+        });
+    
+        function parseFichierExcel(file) {
+            // Vous devez implémenter la logique de lecture du fichier Excel ici
+            // Par exemple, utiliser une bibliothèque de traitement de fichiers Excel comme XLSX.js
+            // Ensuite, remplir la variable 'donneesPopulation' avec les données importées
+            // Exemple fictif :
+            const reader = new FileReader();
+
+                reader.onload = (event) => {
+                    const arrayBuffer = event.target.result;
+                    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+
+                    // Supposons que le fichier Excel a une seule feuille, vous pouvez accéder à la première feuille comme suit :
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+
+                    // Convertir les données de la feuille en un tableau JSON
+                    donneesPopulation = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+
+                    // Define the column that holds date values (e.g., column 'B')
+                    const indexDateColumn = donneesPopulation[0].length - 1;
+
+                    donneesPopulation.map((row,index) => {
+                        if (index =! 0) {
+
+                            if (!isNaN(row[indexDateColumn])) {
+                                const excelDate = new Date((row[indexDateColumn] - 25569) * 86400 * 1000);
+                                const formattedDate = excelDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                                row[indexDateColumn] = formattedDate;
+                            }
+                            
+                            // row[indexDateColumn] = row[indexDateColumn].toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+                        }
+                    })
+
+                    
+                    // console.log(donneesPopulation);
+                    donneesPopulation = toNewFormat(donneesPopulation);
+
+                    // Afficher les données dans la div résultat
+                    resultatDiv.textContent = JSON.stringify(donneesPopulation, null, 2);
+                };
+
+                reader.readAsArrayBuffer(file);
+    
+            // Afficher l'étape 2 une fois les données importées
+            afficherEtape('etape2');
+        }
+    
+        // Étape 2 : Permettre à l'utilisateur de gérer les questions
+        const listeQuestions = document.getElementById('listeQuestions');
+        const ajouterQuestionButton = document.getElementById('ajouterQuestion');
+        const genererJSONButton = document.getElementById('genererJSON');
+    
+        ajouterQuestionButton.addEventListener('click', () => {
+            // L'utilisateur peut ajouter une question ici
+            ajouterQuestion();
+        });
+    
+        function ajouterQuestion() {
+            // Créez un nouvel élément de question et ajoutez-le à la liste
+            const nouvelleQuestion = document.createElement('li');
+            nouvelleQuestion.innerHTML = `
+                <input type="text" class="questionInput" placeholder="Entrez votre question ici">
+                <button class="modifierQuestion">Modifier</button>
+                <button class="supprimerQuestion">Supprimer</button>
+            `;
+            listeQuestions.appendChild(nouvelleQuestion);
+    
+            // Ajouter des gestionnaires d'événements pour la modification et la suppression
+            const modifierQuestionButton = nouvelleQuestion.querySelector('.modifierQuestion');
+            const supprimerQuestionButton = nouvelleQuestion.querySelector('.supprimerQuestion');
+    
+            modifierQuestionButton.addEventListener('click', () => {
+                modifierQuestion(nouvelleQuestion);
+            });
+    
+            supprimerQuestionButton.addEventListener('click', () => {
+                supprimerQuestion(nouvelleQuestion);
+            });
+        }
+    
+        function modifierQuestion(question) {
+            // L'utilisateur peut modifier la question ici
+            const questionInput = question.querySelector('.questionInput');
+            // Mettez en œuvre la logique de modification
+        }
+    
+        function supprimerQuestion(question) {
+            // L'utilisateur peut supprimer la question ici
+            listeQuestions.removeChild(question);
+        }
+    
+        // Étape 3 : Générer le fichier JSON final
+        const jsonOutput = document.getElementById('jsonOutput');
+    
+        genererJSONButton.addEventListener('click', () => {
+            const managers = [];
+
+            // Stockez toutes les questions dans la variable 'questionsEvaluation'
+            questionsEvaluation = Array.from(listeQuestions.querySelectorAll('.questionInput')).map(input => input.value);
+    
+            // Créez une liste de gestionnaires à partir des données de la population
+            for (const data of donneesPopulation) {
+                const managerId = data['MATRICULE MANAGER N+1'];
+                const password = data['BIRTHDAY MANAGER N+1'];
+
+                // Remove '/' characters from the date string and format it as 'DDMMYYYY'
+                const formattedPassword = password.replace(/\//g, ''); // Removes all '/' occurrences
+                managers.push({ id: managerId, password: formattedPassword });
+            }
+    
+            const employees = [];
+    
+            // Créez une liste d'employés avec des questions d'évaluation
+            for (const data of donneesPopulation) {
+                const employeeName = `${data.PRENOM} ${data.NOM}`;
+                const managerId = data['MATRICULE MANAGER N+1'];
+    
+                const employee = {
+                    name: employeeName,
+                    manager: managerId,
+                    programs: questionsEvaluation.map((q) => ({ question: q })),
+                };
+    
+                employees.push(employee);
+            }
+    
+            // Créez l'objet JSON final
+            const jsonData = { managers: managers, employees: employees };
+    
+            // Affichez le JSON généré dans le textarea
+            jsonOutput.value = JSON.stringify(jsonData, null, 2);
+    
+            // Afficher l'étape 3
+            afficherEtape('etape3');
+        });
+    
+        // Fonction pour afficher une étape et masquer les autres
+        function afficherEtape(etapeId) {
+            const etapes = document.querySelectorAll('section');
+            etapes.forEach((etape) => {
+                if (etape.id === etapeId) {
+                    etape.style.display = 'block';
+                } else {
+                    etape.style.display = 'none';
+                }
+            });
+        }
+
+        function toNewFormat(arr) {
+
+            let newArr = [];
+
+            for (let i = 1; i < arr.length; i++) { // Commencez à l'index 1 pour éviter l'en-tête
+                const ligne = arr[i];
+                const objetJSON = {};
+                for (let j = 0; j < arr[0].length; j++) {
+                    const cle = arr[0][j];
+                    const valeur = ligne[j];
+                    objetJSON[cle] = valeur;
+                }
+                // console.log(objetJSON);
+                newArr.push(objetJSON);
+            }
+
+            return newArr;
+        }
+     </script>
+    
+</body>
+</html>

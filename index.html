@@ -1,239 +1,314 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
-            background-color: #f0f0f0;
-        }
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 20px;
+        background-color: #f0f0f0;
+      }
 
-        h1 {
-            color: #e67900;
-        }
+      h1 {
+        color: #e67900;
+      }
 
-        h2 {
-            color: #8e99ae;
-        }
+      h2 {
+        color: #8e99ae;
+      }
 
-        h3 {
-            color: #e67900;
-            margin-top: 20px;
-        }
+      h3 {
+        color: #e67900;
+        margin-top: 20px;
+      }
 
-        form {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-        }
+      form {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+      }
 
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #8e99ae;
-            font-weight: bold;
-        }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        color: #8e99ae;
+        font-weight: bold;
+      }
 
-        select,
-        textarea {
-            width: 100%;
-            padding: 5px;
-            margin: 5px 0;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-        }
+      select,
+      textarea {
+        width: 100%;
+        padding: 5px;
+        margin: 5px 0;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+      }
 
-        button {
-            padding: 10px 20px;
-            font-size: 18px;
-            cursor: pointer;
-            background-color: #e67900;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
+      button {
+        padding: 10px 20px;
+        font-size: 18px;
+        cursor: pointer;
+        background-color: #e67900;
+        color: white;
+        border: none;
+        border-radius: 5px;
+      }
 
-        button:disabled {
-            background-color: #8e99ae;
-            cursor: not-allowed;
-        }
+      button:disabled {
+        background-color: #8e99ae;
+        cursor: not-allowed;
+      }
 
-        /* Additional CSS styles */
-        .question {
-            text-align: left;
-            margin-bottom: 20px;
-        }
+      /* Additional CSS styles */
+      .question {
+        text-align: left;
+        margin-bottom: 20px;
+      }
 
-        #navButtons {
-            margin-top: 20px;
-        }
-        #saveContainer {
-            margin-top: 20px;
-        }
+      #navButtons {
+        margin-top: 20px;
+      }
+      #saveContainer {
+        margin-top: 20px;
+      }
     </style>
     <title>Employee Evaluation</title>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Employee Evaluation</h1>
 
     <!-- JSON file input section -->
     <div id="jsonFileSection">
-        <p>Select JSON file:</p>
-        <input type="file" id="jsonFileInput">
-        <button id="loadButton">Load Data</button>
+      <p>Select JSON file:</p>
+      <input type="file" id="jsonFileInput" />
+      <button id="loadButton">Load Data</button>
     </div>
 
     <!-- Authentication form (hidden initially) -->
-    <form id="authForm" style="display: none;">
-        <label for="managerId">Manager ID:</label>
-        <input type="text" id="managerId" name="managerId"><br>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password"><br>
-        <button type="submit">Authenticate</button>
+    <form id="authForm" style="display: none">
+      <label for="managerId">Manager ID:</label>
+      <input type="text" id="managerId" name="managerId" /><br />
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" /><br />
+      <button type="submit">Authenticate</button>
     </form>
 
     <!-- Evaluation forms container (hidden initially) -->
-    <div id="evaluationForms" style="display: none;">
-        <h2>Evaluation Forms</h2>
-        <div id="formsContainer">
-            <!-- Evaluation forms will be added dynamically using JavaScript -->
-        </div>
-        <div id="navButtons">
-            <button id="prevForm" disabled>Previous</button>
-            <button id="nextForm">Next</button>
-        </div>
-        <div id="saveContainer">
-            <button id="saveBtn" disabled>Save JSON</button>
-        </div>
-        <button id="saveJsonButton" style="display: none;" disabled>Save Evaluations as JSON</button>
+    <div id="evaluationForms" style="display: none">
+      <h2>Evaluation Forms</h2>
+      <div id="formsContainer">
+        <!-- Evaluation forms will be added dynamically using JavaScript -->
+      </div>
+      <div id="navButtons">
+        <button id="prevForm" disabled>Previous</button>
+        <button id="nextForm">Next</button>
+      </div>
+      <div id="saveContainer">
+        <button id="saveJsonButton" style="display: none" disabled>
+          Save Evaluations as JSON
+        </button>
+      </div>
+    </div>
+
+    <!-- Add the thank you message with an ID and set it to display: none -->
+    <div id="thankYouMessage" style="display: none">
+      <h2>Thank you for completing the evaluations!</h2>
+      <!-- Add any additional content or message here -->
     </div>
 
     <script>
-        let companyData;
-        let currentManager;
-        let currentFormIndex = 0;
-        let forms; // Define forms variable here
+      let companyData;
+      let currentManager;
+      let currentFormIndex = 0;
+      let forms;
+      let lastFormCompleted = false; // Track if the last form is completed
 
-        const jsonFileInput = document.getElementById('jsonFileInput');
-        const loadButton = document.getElementById('loadButton');
-        const authForm = document.getElementById('authForm');
-        const evaluationForms = document.getElementById('evaluationForms');
-        const formsContainer = document.getElementById('formsContainer');
-        const prevFormButton = document.getElementById('prevForm');
-        const nextFormButton = document.getElementById('nextForm');
-        const saveJsonButton = document.getElementById('saveJsonButton');
+      const jsonFileInput = document.getElementById("jsonFileInput");
+      const loadButton = document.getElementById("loadButton");
+      const authForm = document.getElementById("authForm");
+      const evaluationForms = document.getElementById("evaluationForms");
+      const formsContainer = document.getElementById("formsContainer");
+      const prevFormButton = document.getElementById("prevForm");
+      const nextFormButton = document.getElementById("nextForm");
+      const saveJsonButton = document.getElementById("saveJsonButton");
 
-        loadButton.addEventListener('click', () => {
-            const file = jsonFileInput.files[0];
-            const reader = new FileReader();
+      loadButton.addEventListener("click", () => {
+        const file = jsonFileInput.files[0];
+        const reader = new FileReader();
 
-            reader.onload = (event) => {
-                companyData = JSON.parse(event.target.result);
-                showAuthForm();
-            };
+        reader.onload = (event) => {
+          companyData = JSON.parse(event.target.result);
+          showAuthForm();
+        };
 
-            reader.readAsText(file);
-        });
+        reader.readAsText(file);
+      });
 
-        authForm.addEventListener('submit', (event) => {
-            event.preventDefault();
-            const managerId = event.target.elements.managerId.value;
-            const password = event.target.elements.password.value;
+      authForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const managerId = event.target.elements.managerId.value;
+        const password = event.target.elements.password.value;
 
-            currentManager = companyData.managers.find(manager => manager.id === managerId && manager.password === password);
+        currentManager = companyData.managers.find(
+          (manager) => manager.id === managerId && manager.password === password
+        );
 
-            if (currentManager) {
-                showEvaluationForms();
-            } else {
-                alert('Invalid credentials. Please try again.');
-            }
-        });
-
-        function showAuthForm() {
-            authForm.style.display = 'block';
-            jsonFileSection.style.display = 'none'; // Hide JSON file input section
+        if (currentManager) {
+          showEvaluationForms();
+        } else {
+          alert("Invalid credentials. Please try again.");
         }
+      });
 
-        function showEvaluationForms() {
-            authForm.style.display = 'none';
-            evaluationForms.style.display = 'block';
-
-            companyData.employees.forEach((employee) => {
-                if (employee.manager === currentManager.id) {
-                    const form = createForm(employee);
-                    formsContainer.appendChild(form);
-                }
-            });
-
-            forms = formsContainer.querySelectorAll('.evaluation-form'); // Assign forms here
-            forms[currentFormIndex].style.display = 'block';
+      nextFormButton.addEventListener("click", () => {
+        if (validateCurrentForm()) {
+          forms[currentFormIndex].style.display = "none";
+          currentFormIndex++;
+          if (currentFormIndex < forms.length) {
+            forms[currentFormIndex].style.display = "block";
             updateNavigationButtons();
 
-            // Add event listeners for select elements in the last evaluation form
-            const lastFormSelects = forms[forms.length - 1].querySelectorAll('select');
-            lastFormSelects.forEach(select => {
-                select.addEventListener('change', handleSelectChange);
-            });
-
-            prevFormButton.addEventListener('click', () => {
-                forms[currentFormIndex].style.display = 'none';
-                currentFormIndex--;
-                forms[currentFormIndex].style.display = 'block';
-                updateNavigationButtons();
-            });
-
-            nextFormButton.addEventListener('click', () => {
-                if (validateCurrentForm()) {
-                    forms[currentFormIndex].style.display = 'none';
-                    currentFormIndex++;
-                    if (currentFormIndex < forms.length) {
-                        forms[currentFormIndex].style.display = 'block';
-                        updateNavigationButtons();
-                    } else {
-                        // All evaluations are completed
-                        saveJsonButton.style.display = 'block';
-                        saveJsonButton.removeAttribute('disabled');
-                        nextFormButton.style.display = 'none';
-                        prevFormButton.style.display = 'none';
-                    }
-                } else {
-                    alert('Please complete the active evaluation before moving to the next one.');
-                }
-            });
-
-            function validateCurrentForm() {
-                const currentForm = forms[currentFormIndex];
-                const selectElements = currentForm.querySelectorAll('select');
-                for (let i = 0; i < selectElements.length; i++) {
-                    if (selectElements[i].value === '') {
-                        return false;
-                    }
-                }
-                return true;
+            if (currentFormIndex == forms.length - 1) {
+              // All evaluations are completed
+              lastFormCompleted = true;
+              saveJsonButton.style.display = "block";
+              // saveJsonButton.removeAttribute("disabled");
+              nextFormButton.style.display = "none";
+              prevFormButton.style.display = "none";
             }
-
-           
+          } else {
+            // All evaluations are completed
+            lastFormCompleted = true;
+            saveJsonButton.style.display = "block";
+            saveJsonButton.removeAttribute("disabled");
+            nextFormButton.style.display = "none";
+            prevFormButton.style.display = "none";
+          }
+        } else {
+          alert(
+            "Please complete the active evaluation before moving to the next one."
+          );
         }
+      });
 
-        function updateNavigationButtons() {
-            prevFormButton.disabled = currentFormIndex === 0;
-            nextFormButton.disabled = currentFormIndex === forms.length - 1;
+      function validateCurrentForm() {
+        const currentForm = forms[currentFormIndex];
+        const selectElements = currentForm.querySelectorAll("select");
+        for (let i = 0; i < selectElements.length; i++) {
+          if (selectElements[i].value === "") {
+            return false;
+          }
         }
+        return true;
+      }
 
-        function createForm(employee) {
-            const form = document.createElement('form');
-            form.className = 'evaluation-form';
+      saveJsonButton.addEventListener("click", () => {
+        if (lastFormCompleted) {
+          // Create a JSON object with the evaluation data
+          const evaluationData = {
+            managerId: currentManager.id,
+            evaluations: [],
+          };
 
-            const heading = document.createElement('h3');
-            heading.textContent = `Evaluation for ${employee.name}`;
-            form.appendChild(heading);
+          forms.forEach((form, index) => {
+            const evaluation = {
+              employeeName: companyData.employees[index].name,
+              answers: [],
+            };
 
-            employee.programs.forEach((program, index) => {
-                const question = `
+            const selectElements = form.querySelectorAll("select");
+            selectElements.forEach((select) => {
+              evaluation.answers.push(select.value);
+            });
+
+            evaluationData.evaluations.push(evaluation);
+          });
+
+          // Convert the JSON object to a JSON string
+          const jsonString = JSON.stringify(evaluationData);
+
+          // Generate the file name
+          const currentDate = new Date().toISOString().split("T")[0];
+          const fileName = `${currentManager.id.replace(
+            / /g,
+            "-"
+          )}_${currentDate}.json`;
+
+          // Create a Blob and save it as a JSON file
+          const blob = new Blob([jsonString], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+
+          // Create a download link and trigger a click event
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = fileName;
+          a.style.display = "none";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+
+          // Revoke the Blob URL to free up resources
+          URL.revokeObjectURL(url);
+        } else {
+          alert("Please complete all evaluation forms before saving.");
+        }
+      });
+
+      // Function to show the authentication form
+      function showAuthForm() {
+        authForm.style.display = "block";
+        jsonFileSection.style.display = "none"; // Hide JSON file input section
+      }
+
+      // Function to show the evaluation forms
+      function showEvaluationForms() {
+        authForm.style.display = "none";
+        evaluationForms.style.display = "block";
+
+        companyData.employees.forEach((employee) => {
+          if (employee.manager === currentManager.id) {
+            const form = createForm(employee);
+            formsContainer.appendChild(form);
+          }
+        });
+
+        forms = formsContainer.querySelectorAll(".evaluation-form");
+        forms[currentFormIndex].style.display = "block";
+        updateNavigationButtons();
+
+        // Add event listeners for select elements in the last evaluation form
+        const lastFormSelects =
+          forms[forms.length - 1].querySelectorAll("select");
+        lastFormSelects.forEach((select) => {
+          select.addEventListener("change", handleSelectChange);
+        });
+
+        prevFormButton.addEventListener("click", () => {
+          forms[currentFormIndex].style.display = "none";
+          currentFormIndex--;
+          forms[currentFormIndex].style.display = "block";
+          updateNavigationButtons();
+        });
+      }
+
+      function updateNavigationButtons() {
+        prevFormButton.disabled = currentFormIndex === 0;
+        nextFormButton.disabled = currentFormIndex === forms.length - 1;
+      }
+
+      function createForm(employee) {
+        const form = document.createElement("form");
+        form.className = "evaluation-form";
+
+        const heading = document.createElement("h3");
+        heading.textContent = `Evaluation for ${employee.name}`;
+        form.appendChild(heading);
+
+        employee.programs.forEach((program, index) => {
+          const question = `
                     <div class="question">
                         <label>${program.question}</label><br>
                         <select name="program${index}">
@@ -247,22 +322,29 @@
                         <textarea name="comments${index}" placeholder="Comments"></textarea><br>
                     </div>
                 `;
-                form.innerHTML += question;
-            });
+          form.innerHTML += question;
+        });
 
-            form.style.display = 'none';
-            return form;
+        form.style.display = "none";
+        return form;
+      }
+
+      function handleSelectChange(event) {
+        const selectElement = event.target;
+        if (currentFormIndex === forms.length - 1) {
+          console.log(
+            `Value changed in the last evaluation form. New value: ${selectElement.value}`
+          );
+
+          // EACH TIME WE CHANGE THE VALUE --> CHECK IF ALL SELECT VALUE ARE NOT EMPTY
+          if ( validateCurrentForm() ) {
+              saveJsonButton.style.display = "block";
+              saveJsonButton.removeAttribute("disabled");
+              nextFormButton.style.display = "none";
+              prevFormButton.style.display = "none";
+          }
         }
-
-        // Function to handle the console.log() message
-        function handleSelectChange(event) {
-            const selectElement = event.target;
-            if (currentFormIndex === forms.length - 1) {
-                console.log(` HEERREE Value changed in the last evaluation form. New value: ${selectElement.value}`);
-            }
-        }
-
-        
+      }
     </script>
-</body>
+  </body>
 </html>
