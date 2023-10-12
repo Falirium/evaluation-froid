@@ -131,7 +131,7 @@
       }
 
       .question select {
-        flex: 0 0 15%;
+        flex: 0 0 35%;
         max-width: 15%;
 
         /* Permet à la liste des réponses de prendre autant d'espace que possible */
@@ -140,7 +140,7 @@
       }
 
       .question textarea {
-        max-width: 35%;
+        
         overflow-x: auto;
         overflow-y: auto;
 
@@ -360,15 +360,18 @@
       <button type="submit">Authentifier</button>
     </form>
 
+ <!-- Section d'introduction -->
+    <div id="introduction" style="display: none">
+      <h2>Introduction</h2>
+      <p id="introContent"></p>
+      <button id="startEvaluationButton">Commencer</button>
+    </div>
+
     <!-- Conteneur des formulaires d'évaluation (initialement caché) -->
     <div id="evaluationForms" style="display: none">
-      <!-- Section d'introduction -->
-      <div id="introduction">
-        <h2>Introduction</h2>
-        <p id="intro"></p>
-        <button id="startEvaluationButton">Commencer</button>
-      </div>
-
+      
+     
+    
       <div id="formsContainer">
         <!-- Les formulaires d'évaluation seront ajoutés dynamiquement en utilisant JavaScript -->
       </div>
@@ -403,7 +406,7 @@
       const authForm = document.getElementById("authForm");
       const evaluationForms = document.getElementById("evaluationForms");
       const formsContainer = document.getElementById("formsContainer");
-      const introContainer = document.getElementById("intro");
+      const introContentContainer = document.getElementById("introContent");
       const prevFormButton = document.getElementById("prevForm");
       const nextFormButton = document.getElementById("nextForm");
       const saveJsonButton = document.getElementById("saveJsonButton");
@@ -412,8 +415,7 @@
 
 
       startEvaluationButton.addEventListener("click", () => {
-        iintroductionSection.style.display = "none"; // Masquer l'introduction
-        formsContainer.style.display = "block"; // Afficher le conteneur des formulaires
+        showEvaluationForms();
         
         companyData.employees.forEach((employee) => {
           if (employee.manager === currentManager.id) {
@@ -468,7 +470,8 @@
         );
 
         if (currentManager) {
-          showEvaluationForms();
+          // showEvaluationForms();
+          showIntroContainer();
         } else {
           alert("Invalid credentials. Please try again.");
         }
@@ -548,7 +551,7 @@
           }__${currentManager.id.replace(
             / /g,
             "-"
-          )}__${currentDate}__resultat.json`;
+          )}__${currentDate}_Resultat.json`;
 
           // Create a Blob and save it as a JSON file
           const blob = new Blob([jsonString], { type: "application/json" });
@@ -578,9 +581,21 @@
 
       // Function to show the evaluation forms
       function showEvaluationForms() {
+        introductionSection.style.display = "none";
+        evaluationForms.style.display = "block";
+        
+
+        
+      }
+
+      function showIntroContainer() {
+        console.log('SHOW INTRO ')
         authForm.style.display = "none";
-        // evaluationForms.style.display = "block";
         jsonFileSection.style.display = "none"; // Hide JSON file input section
+
+        introductionSection.style.display = "block"; // Shozw intro container
+        let paragraph = companyData.axesFormation;
+        introContentContainer.innerHTML = paragraph.replace(/\n/g, "<br>");
 
         
       }
@@ -604,13 +619,13 @@
                         <label>${program.question}</label><br>
                         <select name="program${index}">
                             <option value="">Select...</option>
-                            <option value="0">less than 20%</option>
-                            <option value="1">between 20% and 40%</option>
-                            <option value="2">between 40% and 60%</option>
-                            <option value="3">between 60% and 80%</option>
-                            <option value="4">between 80% and 100%</option>
+                            <option value="0">(-) de 20%</option>
+                            <option value="1">20 à 40 %</option>
+                            <option value="2">40 à 60 %</option>
+                            <option value="3">60 à 80 %</option>
+                            <option value="4">80 à 100 %</option>
                         </select><br>
-                        <textarea name="comments${index}" placeholder="Comments"></textarea><br>
+                        <textarea name="comments${index}" placeholder="Remarques/argumentaires de l'évaluateur"></textarea><br>
                     </div>
                 `;
           form.innerHTML += question;
