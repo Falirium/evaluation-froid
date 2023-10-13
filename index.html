@@ -428,6 +428,11 @@
         forms[currentFormIndex].style.display = "block";
         updateNavigationButtons();
 
+        if (currentFormIndex == forms.length - 1) {
+          lastFormCompleted = true;
+
+        }
+
         // Add event listeners for select elements in the last evaluation form
         const lastFormSelects =
           forms[forms.length - 1].querySelectorAll("select");
@@ -583,6 +588,8 @@
       function showEvaluationForms() {
         introductionSection.style.display = "none";
         evaluationForms.style.display = "block";
+
+        
         
 
         

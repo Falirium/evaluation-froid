@@ -269,6 +269,12 @@
       <label for="nomCampagne">Nom de la campagne d'évaluation:</label>
       <input type="text" id="nomCampagne" name="nomCampagne" />
 
+      <label for="nomFormation">Nom de la formation/cursus:</label>
+      <input type="text" id="nomFormation" name="nomFormation" />
+
+      <label for="axesFormation">Axes traités par la formation/cursus:</label>
+      <textarea id="axesFormation" name="axesFormation"></textarea>
+
       <label for="fichierExcel">Importer le fichier Excel:</label>
       <input type="file" id="fichierExcel" accept=".xlsx, .xls" />
       <div id="resultat"></div>
@@ -362,7 +368,8 @@
           donneesPopulation = toNewFormat(donneesPopulation);
 
           // Retirer les objets (lignes) qui sont de valeur undefined
-          donneesPopulation = filterObjectsWithUndefinedValues(donneesPopulation);
+          donneesPopulation =
+            filterObjectsWithUndefinedValues(donneesPopulation);
 
           // Afficher les données dans la div résultat
           // resultatDiv.textContent = JSON.stringify(donneesPopulation, null, 2);
@@ -373,9 +380,16 @@
         // Afficher l'étape 2 une fois les données importées
         // Récupérez le nom de la campagne d'évaluation depuis le champ
         const nomCampagne = document.getElementById("nomCampagne").value;
+        const nomFormation = document.getElementById("nomFormation").value; // Nouveau champ
+        const axesFormation = document.getElementById("axesFormation").value; // Nouveau champ
 
         if (nomCampagne === "") {
           alert("Merci de saisir un nom pour cette campagne");
+        } else if (nomFormation === "" || axesFormation === "") {
+          // Vérification des nouveaux champs
+          alert(
+            "Merci de saisir un nom de formation/cursus et des axes traités."
+          );
         } else {
           afficherEtape("etape2");
         }
@@ -441,6 +455,8 @@
 
         // Récupérez le nom de la campagne d'évaluation depuis le champ
         const nomCampagne = document.getElementById("nomCampagne").value;
+        const nomFormation = document.getElementById("nomFormation").value; 
+        const axesFormation = document.getElementById("axesFormation").value; 
 
         // Créez une liste de gestionnaires à partir des données de la population
         for (const data of donneesPopulation) {
@@ -476,6 +492,8 @@
         // Créez l'objet JSON final
         jsonData = {
           campagne_ID: nomCampagne,
+          nomFormation: nomFormation, // Nouveau champ
+          axesFormation: axesFormation, // Nouveau champ
           managers: managers,
           employees: employees,
         };
