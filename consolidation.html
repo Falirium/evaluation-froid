@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Consolidation des Évaluations</title>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  </head>
+  <body>
+    <h1>Consolidation des Évaluations</h1>
+    <p>Importez les fichiers JSON des managers :</p>
+    <input type="file" id="managersJsonFilesInput" accept=".json" multiple />
+    <p>Importez le fichier JSON de la campagne :</p>
+    <input type="file" id="campaignJsonFileInput" accept=".json" />
+    <button id="consolidateButton">Consolider</button>
+
+    <div id="consolidationResult">
+      <!-- Les tableaux de consolidation s'afficheront ici -->
+    </div>
+
+    <div id="evaluationSummary"></div>
+  </body>
+  <script>
+    document
+      .getElementById("consolidateButton")
+      .addEventListener("click", consolidateJSON);
+
+    function consolidateJSON() {
+      const managersJsonFilesInput = document.getElementById(
+        "managersJsonFilesInput"
+      );
+      const campaignJsonFileInput = document.getElementById(
+        "campaignJsonFileInput"
+      );
+      const consolidationResult = document.getElementById(
+        "consolidationResult"
+      );
+      consolidationResult.innerHTML = ""; // Efface le contenu précédent
+
+      // Fonction pour récupérer le contenu d'un fichier JSON
+      function readFileContent(file, callback) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const fileContent = event.target.result;
+          try {
+            const jsonData = JSON.parse(fileContent);
+            callback(jsonData);
+          } catch (error) {
+            console.error("Erreur de lecture du fichier JSON :", error);
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      // Importer le fichier de la campagne
+      if (campaignJsonFileInput.files.length === 1) {
+        const campaignFile = campaignJsonFileInput.files[0];
+        readFileContent(campaignFile, (campaignData) => {
+          // Assurez-vous de valider la structure du JSON si nécessaire
+
+          // Importer les fichiers JSON des gestionnaires
+          const managerFilesPromises = Array.from(
+            managersJsonFilesInput.files
+          ).map((file) => {
+            return new Promise((resolve) => {
+              readFileContent(file, (managerData) => {
+                resolve(managerData);
+              });
+            });
+          });
+
+          Promise.all(managerFilesPromises).then((managersFiles) => {
+            // Maintenant, vous avez les contenus des fichiers JSON des gestionnaires et de la campagne.
+            consolidateManagersData(managersJsonFilesInput.files, campaignData);
+            console.log(campaignData);
+
+            // Afficher le tableau de synthèse
+            consolidateEvaluationData(managersFiles, campaignData);
+          });
+        });
+      } else {
+        consolidationResult.textContent =
+          "Veuillez importer le fichier de la campagne.";
+      }
+    }
+
+    function consolidateEvaluationData(managersFiles, campaignData) {
+      // Votre code existant ici...
+
+      // Convertir managersFiles en un tableau
+      const managersArray = Array.from(managersFiles);
+
+      // Créer un tableau de synthèse des évaluations
+      const evaluationSummaryTable = document.createElement("table");
+      evaluationSummaryTable.classList.add("summary-table");
+      const summaryTableHeader = evaluationSummaryTable.createTHead();
+      const headerRow = summaryTableHeader.insertRow(0);
+      const headers = [
+        "Question",
+        "(-) de 20%",
+        "20 à 40 %",
+        "40 à 60 %",
+        "60 à 80 %",
+        "80 à 100 %",
+      ];
+
+      for (let i = 0; i < headers.length; i++) {
+        const th = document.createElement("th");
+        th.textContent = headers[i];
+        headerRow.appendChild(th);
+      }
+
+      const summaryTableBody = evaluationSummaryTable.createTBody();
+
+      // Récupérer toutes les questions
+      const questions = campaignData.employees[0].programs.map(
+        (program) => program.question
+      );
+
+      console.log(questions);
+
+      // Initialiser un objet pour stocker les statistiques des réponses
+      const questionStats = {};
+
+      // Pour chaque question, initialiser les statistiques
+      questions.forEach((question) => {
+        questionStats[question] = {
+          "-20%": 0,
+          "20 à 40 %": 0,
+          "40 à 60 %": 0,
+          "60 à 80 %": 0,
+          "80 à 100 %": 0,
+        };
+      });
+
+      console.log(` BEFOR LOOP  : ${questionStats}`);
+
+      // Pour chaque fichier de manager, parcourir les évaluations
+      for (const managerFile of managersArray) {
+        console.log(managerFile);
+        if (managerFile.evaluations) {
+          for (const evaluation of managerFile.evaluations) {
+            const answers = evaluation.answers;
+
+            // Pour chaque réponse, mettre à jour les statistiques
+            for (let i = 0; i < answers.length; i++) {
+              const answer = answers[i];
+              //   const question = `Question ${i + 1}`; // Utiliser une convention pour les questions
+              const question = questions[i];
+              const statKey = getStatKey(answer);
+
+              console.log(
+                `answer : ${answer}, question : ${question}, statKey : ${statKey}`
+              );
+
+              // Initialiser les statistiques pour cette question si elles n'existent pas encore
+              console.log(` test  : ${questionStats}`);
+              if (!questionStats[question]) {
+                questionStats[question] = {
+                  "-20%": 0,
+                  "20 à 40 %": 0,
+                  "40 à 60 %": 0,
+                  "60 à 80 %": 0,
+                  "80 à 100 %": 0,
+                };
+              }
+
+              if (statKey) {
+                questionStats[question][statKey]++;
+              }
+            }
+          }
+        }
+      }
+
+      console.log(` AFTER LOOP  : ${questionStats}`);
+
+      // Boucle à travers les questions pour construire le tableau de synthèse
+      for (const question of questions) {
+        const row = summaryTableBody.insertRow(-1);
+
+        // Question
+        const questionCell = row.insertCell(0);
+        questionCell.textContent = question;
+
+        // (-) de 20%
+        const lessThan20Cell = row.insertCell(1);
+        lessThan20Cell.textContent = questionStats[question]["-20%"];
+
+        // 20 à 40%
+        const from20to40Cell = row.insertCell(2);
+        from20to40Cell.textContent = questionStats[question]["20 à 40 %"];
+
+        // 40 à 60%
+        const from40to60Cell = row.insertCell(3);
+        from40to60Cell.textContent = questionStats[question]["40 à 60 %"];
+
+        // 60 à 80%
+        const from60to80Cell = row.insertCell(4);
+        from60to80Cell.textContent = questionStats[question]["60 à 80 %"];
+
+        // 80 à 100%
+        const from80to100Cell = row.insertCell(5);
+        from80to100Cell.textContent = questionStats[question]["80 à 100 %"];
+      }
+
+      // Ajouter le tableau de synthèse des évaluations à la page
+      const evaluationSummarySection =
+        document.getElementById("evaluationSummary");
+      evaluationSummarySection.innerHTML = "";
+      evaluationSummarySection.appendChild(evaluationSummaryTable);
+
+      // Créez un bouton
+      const exportButton = document.createElement("button");
+      exportButton.textContent = "Exporter les résultats sous Excel";
+      exportButton.id = "exportToExcel"; // Ajoutez un ID au bouton pour pouvoir l'identifier avec JavaScript
+
+      evaluationSummarySection.appendChild(exportButton);
+
+      // Ajouter eventlitnser to excel button
+      document
+        .getElementById("exportToExcel")
+        .addEventListener("click", function () {
+          const campaignName = campaignData["campagne_ID"]; // Remplacez par le nom de la campagne
+          const currentDate = new Date();
+          const formattedDate = currentDate.toISOString().slice(0, 10); // Format de date : AAAA-MM-JJ
+
+          const fileName = `${campaignName}__${formattedDate}.xlsx`; // Nom du fichier Excel
+
+          // Créez un tableau de données pour le fichier Excel
+          const data = [["Collaborateur", ...questions]];
+
+          // Boucle à travers les managers et leurs évaluations
+          for (const manager of managersArray) {
+            for (const evaluation of manager.evaluations) {
+              const rowData = [evaluation.employeeName, ...evaluation.answers];
+              data.push(rowData);
+            }
+          }
+
+          // Créez un tableau de données en utilisant la bibliothèque XLSX
+          const ws = XLSX.utils.aoa_to_sheet(data);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Résultats de la campagne");
+
+          // Générez un fichier Excel sous forme de blob
+          XLSX.write(
+            wb,
+            {
+              bookType: "xlsx",
+              type: "blob",
+              mimeType:
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            },
+            function (blob) {
+              // Créez un lien d'export
+              const a = document.createElement("a");
+              a.href = URL.createObjectURL(blob);
+              a.download = fileName;
+
+              // Cliquez sur le lien pour télécharger le fichier
+              a.click();
+
+              // Libérez l'URL de l'objet blob
+              URL.revokeObjectURL(a.href);
+            }
+          );
+        });
+    }
+
+    // Cette fonction convertit la valeur de réponse en la clé de statistiques appropriée
+    function getStatKey(answer) {
+      switch (answer) {
+        case "0":
+          return "-20%";
+        case "1":
+          return "20 à 40 %";
+        case "2":
+          return "40 à 60 %";
+        case "3":
+          return "60 à 80 %";
+        case "4":
+          return "80 à 100 %";
+        default:
+          return null;
+      }
+    }
+
+    function consolidateManagersData(managersFiles, campaignData) {
+      // Mettez en place la consolidation des données des managers ici
+
+      // Convertir managersFiles en un tableau
+      const managersArray = Array.from(managersFiles);
+
+      // PARTIE 2 : VERIFICATION
+      // Créez le premier tableau : Managers et statut d'envoi d'évaluations
+      const managersTable = document.createElement("table");
+      // Créez des en-têtes de colonne
+      const thead = document.createElement("thead");
+      const headerRow = document.createElement("tr");
+      const headers = ["Manager ID", "A envoyé les évaluations ?"];
+      headers.forEach((headerText) => {
+        const th = document.createElement("th");
+        th.textContent = headerText;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      managersTable.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+
+      // Parcourez les managers de la campagne et vérifiez s'ils ont envoyé des évaluations
+      campaignData.managers.forEach((manager) => {
+        const row = document.createElement("tr");
+        const managerIdCell = document.createElement("td");
+        managerIdCell.textContent = manager.id;
+        const hasSentEvaluationsCell = document.createElement("td");
+
+        // Vérifiez si le manager a envoyé des évaluations en parcourant les fichiers importés
+        const hasSentEvaluations = managersArray.some((file) =>
+          file.name.includes(manager.id)
+        );
+        hasSentEvaluationsCell.textContent = hasSentEvaluations ? "OUI" : "NON";
+
+        row.appendChild(managerIdCell);
+        row.appendChild(hasSentEvaluationsCell);
+        tbody.appendChild(row);
+      });
+
+      managersTable.appendChild(tbody);
+
+      // Créez le deuxième tableau : Tableau de synthèse des évaluations
+      const summaryTable = document.createElement("table");
+      // Configurez ce tableau selon vos besoins
+
+      // Ajoutez les deux tableaux au résultat de la consolidation
+      const consolidationResult = document.getElementById(
+        "consolidationResult"
+      );
+      consolidationResult.appendChild(managersTable);
+      consolidationResult.appendChild(document.createElement("br")); // Ajoutez un espace entre les tableaux
+      consolidationResult.appendChild(summaryTable);
+
+      // FIN PARTIE 2
+    }
+  </script>
+</html>
